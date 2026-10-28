@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Antigravity Controller — Magnetic Levitation Simulator</title>
+  <meta name="description" content="Real-time Neural Network Controller for Magnetic Levitation (Antigravity Simulator) with custom physics and MLP from scratch.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+      </div>
+      <div>
+        <h1>ANTIGRAVITY SIMULATOR</h1>
+        <div class="subtitle">AI-Powered Magnetic Levitation Feedback Controller</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge badge-live">AI CONTROLLER: ONLINE</div>
+      <div class="badge">NUMPY MLP BRAIN</div>
+      <div class="badge" id="rateBadge">200 Hz CLK</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT PANEL: Interactive Antigravity Chamber -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>⚡</span> THE ANTIGRAVITY CHAMBER
+        </div>
+        <div class="badge" id="modelActiveBadge">Crash-Loss Model</div>
+      </div>
+      <div class="chamber-container">
+        <canvas id="chamberCanvas" width="410" height="540"></canvas>
+        <div class="chamber-hint">
+          <span>👆</span> <strong>Click & Drag</strong> the metallic sphere to release or throw it!
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL: Real-time Oscilloscope Telemetry -->
+    <div class="panel charts-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📈</span> REAL-TIME TELEMETRY OSCILLOSCOPES
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button id="soundToggleBtn" class="badge" style="cursor:pointer; background:rgba(192,132,252,0.15); border-color:#c084fc; color:#e9d5ff;">
+            🔊 Audio Hum: OFF
+          </button>
+          <button id="clearScopeBtn" class="badge" style="cursor:pointer;">Clear Scopes</button>
+        </div>
+      </div>
+
+      <!-- Scope 1: Altitude (Distance) -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title" style="color:var(--accent-cyan)">ALTITUDE TRACKING y(t) vs TARGET</span>
+          <span class="chart-value" id="valY" style="color:var(--accent-cyan)">0.500 m</span>
+        </div>
+        <canvas id="scopeY" class="chart-canvas" width="600" height="105"></canvas>
+      </div>
+
+      <!-- Scope 2: Control Current I(t) -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title" style="color:var(--accent-magenta)">ELECTROMAGNET CURRENT I(t)</span>
+          <span class="chart-value" id="valI" style="color:var(--accent-magenta)">2.05 A</span>
+        </div>
+        <canvas id="scopeI" class="chart-canvas" width="600" height="105"></canvas>
+      </div>
+
+      <!-- Scope 3: Vertical Velocity v(t) -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title" style="color:var(--accent-emerald)">VERTICAL VELOCITY dy/dt</span>
+          <span class="chart-value" id="valV" style="color:var(--accent-emerald)">0.00 m/s</span>
+        </div>
+        <canvas id="scopeV" class="chart-canvas" width="600" height="105"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Live Telemetry & Interactive Controls -->
+    <div class="panel controls-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>⚙️</span> CONTROLLER DECK
+        </div>
+      </div>
+
+      <!-- Status Indicator Badge -->
+      <div class="status-badge-box">
+        <div class="telemetry-label">STABILITY STATUS</div>
+        <div class="status-indicator" id="statusBadge" style="color:#10b981;">✦ HOVER LOCKED (STABLE)</div>
+      </div>
+
+      <!-- Telemetry Readout Grid -->
+      <div class="telemetry-grid">
+        <div class="telemetry-box">
+          <span class="telemetry-label">TARGET HEIGHT</span>
+          <span class="telemetry-num" id="targetReadout" style="color:#38bdf8;">0.50 m</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-label">ERROR |Δy|</span>
+          <span class="telemetry-num" id="errorReadout" style="color:#fbbf24;">0.0 mm</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-label">MAG FORCE (F_mag)</span>
+          <span class="telemetry-num" id="fmagReadout" style="color:#c084fc;">0.49 N</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-label">GRAVITY (F_g)</span>
+          <span class="telemetry-num" id="fgravReadout" style="color:#f87171;">0.49 N</span>
+        </div>
+      </div>
+
+      <!-- Drop Preset Buttons -->
+      <div class="btn-group">
+        <button id="dropHazardBtn" class="btn btn-hazard">
+          ⚠️ Drop from Floor (0.12 m Hazard)
+        </button>
+        <button id="dropHighBtn" class="btn">
+          🚀 Drop from Ceiling (0.88 m High)
+        </button>
+        <button id="gustBtn" class="btn btn-emerald">
+          💨 Inject Wind Disturbance Gust
+        </button>
+      </div>
+
+      <!-- Controller Model Selection -->
+      <div class="select-row">
+        <label class="slider-label" for="modelSelect">ACTIVE CONTROLLER BRAIN</label>
+        <select id="modelSelect">
+          <option value="crash_penalty" selected>✦ AI Neural Network (Crash-Penalty Loss)</option>
+          <option value="mse">AI Neural Network (Standard MSE Loss)</option>
+          <option value="analytic">Feedback Linearization (Ideal Analytical)</option>
+        </select>
+      </div>
+
+      <!-- Parameter Sliders -->
+      <div class="slider-group">
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Target Hover Height (y*)</span>
+            <span class="slider-val" id="targetSliderVal">0.50 m</span>
+          </div>
+          <input type="range" id="targetSlider" min="0.15" max="0.85" step="0.01" value="0.50">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Gravity Acceleration (g)</span>
+            <span class="slider-val" id="gravitySliderVal">9.81 m/s²</span>
+          </div>
+          <input type="range" id="gravitySlider" min="0" max="20" step="0.1" value="9.81">
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Object Mass (m)</span>
+            <span class="slider-val" id="massSliderVal">0.050 kg</span>
+          </div>
+          <input type="range" id="massSlider" min="0.01" max="0.15" step="0.005" value="0.050">
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

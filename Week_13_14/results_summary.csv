@@ -1,0 +1,4 @@
+Model,Train Accuracy,Test Accuracy
+Bagging (Random Forest),0.9842857142857143,0.8883333333333333
+Boosting (XGBoost),0.9664285714285714,0.9
+Boosting (LightGBM),0.9628571428571429,0.9
